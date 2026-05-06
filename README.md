@@ -28,8 +28,8 @@ The diagrams below are Mermaid diagrams, which GitHub renders as images.
 
 ```mermaid
 flowchart TD
-    user["User question"] --> graph["main.py graph.invoke"]
-    graph --> draft["draft node"]
+    user_question["User question"] --> graph_invoke["main.py graph.invoke"]
+    graph_invoke --> draft["draft node"]
     draft --> first["chains.first_responder"]
     first --> answerTool["AnswerQuestion tool call<br/>answer + reflection + search_queries"]
     answerTool --> tools["execute_tools node"]
@@ -51,7 +51,7 @@ flowchart TD
     execute_tools --> revise["revise"]
     revise --> loop{"event_loop"}
     loop --> execute_tools
-    loop --> end(["END"])
+    loop --> finish(["END"])
 ```
 
 ## Runtime Sequence
