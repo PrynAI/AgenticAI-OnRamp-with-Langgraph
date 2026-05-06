@@ -1,4 +1,4 @@
-# AgenticAI OnRamp with LangGraph
+# AgenticAI - Applied Reflexion architecture with langgraph
 
 This project is a minimal LangGraph research agent. It drafts an answer, critiques
 its own response, generates search queries, runs Tavily search, and revises the
