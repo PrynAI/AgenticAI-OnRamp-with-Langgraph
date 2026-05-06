@@ -1,4 +1,4 @@
-# Agentic AI On-Ramp with LangGraph
+# Basic Reflection agent with Langgraph
 
 This branch, `reflection-agent`, demonstrates a simple LangGraph reflection agent.
 The app generates a LinkedIn post, asks a second chain to critique it, feeds that
