@@ -1,7 +1,7 @@
 from typing import TypedDict, List
 
 
-class StateGraph(TypedDict):
+class GraphState(TypedDict):
     """State that contains attriutes with defined types that flows through out state of the graph
 
     Attributes:
