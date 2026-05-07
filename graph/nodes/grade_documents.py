@@ -18,7 +18,7 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
     print("-----CHECK DOCUMENT RELEVANCE TO QUESTION....")
 
     question = state["question"]
-    documents = state["documents"]
+    documents = state.get("documents", [])
 
     filtered_docs = []
 
@@ -37,4 +37,4 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
             print("----GRADE:DOCUMENT NOT RELEVANT...")
             web_search = True
             continue
-    return {"documents": filtered_docs, "question": question, "web_Search": web_search}
+    return {"documents": filtered_docs, "question": question, "web_search": web_search}

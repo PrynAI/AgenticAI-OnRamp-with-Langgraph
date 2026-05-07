@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
+
+load_dotenv()
 import os
-import ssl
-import certifi
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_weaviate import WeaviateVectorStore
@@ -13,10 +13,6 @@ from weaviate.classes.init import Auth
 WEAVIATE_COLLECTION_NAME = os.getenv(
     "WEAVIATE_COLLECTION_NAME", "Langgraphwebcollection"
 )
-
-ssl_context = ssl.create_default_context(cafile=certifi.where())
-os.environ["SSL_CERT_FILE"] = certifi.where()
-os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 load_dotenv()
 
@@ -48,6 +44,6 @@ vectorstore = WeaviateVectorStore.from_documents(
     index_name=WEAVIATE_COLLECTION_NAME,
     text_key="text",
 )
-weaviate_client.close()
+# weaviate_client.close()
 
 # retriever = vectorstore.as_retriever(search_kwargs={"k": 3})

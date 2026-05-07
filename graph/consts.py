@@ -1,0 +1,7 @@
+RETRIEVE = "retrieve"
+GRADE_DOCUMENTS = "grade_documents"
+GENERATE = "generate"
+WEBSEARCH = "websearch"
+
+MAX_GENERATION_ATTEMPTS = 3
+MAX_WEB_SEARCH_ATTEMPTS = 2

@@ -3,14 +3,8 @@ from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain.messages import HumanMessage, SystemMessage
 from dotenv import load_dotenv
-import os
-import ssl
-import certifi
 
 load_dotenv()
-ssl_context = ssl.create_default_context(cafile=certifi.where())
-os.environ["SSL_CERT_FILE"] = certifi.where()
-os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 llm = ChatOpenAI(model="gpt-5-nano", temperature=0)
 
