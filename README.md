@@ -1,10 +1,34 @@
-# AgenticAI - Applied Reflexion architecture with langgraph
+# AgenticAI - Applied Reflexion Architecture with LangGraph
 
 This project is a minimal LangGraph research agent. It drafts an answer, critiques
 its own response, generates search queries, runs Tavily search, and revises the
 answer with citations.
 
-The diagrams below are Mermaid diagrams, which GitHub renders as images.
+The repository includes two rendered PNG diagrams for quick visual orientation,
+plus Mermaid source diagrams below for editable documentation.
+
+## Visual Overview
+
+### Reflexion Actor Loop
+
+![Reflexion Actor loop](reflexionactor.png)
+
+This diagram shows the conceptual agent pattern implemented by the project:
+
+1. The user request goes to a responder.
+2. The responder creates an initial answer, critique, and search plan.
+3. Tool execution gathers external evidence for the generated searches.
+4. A revisor uses the critique and tool results to produce a better answer with citations.
+5. The loop can repeat for a configured number of rounds before returning the final answer.
+
+### Compiled LangGraph Workflow
+
+![Compiled LangGraph workflow](graphworkflow.png)
+
+This diagram shows the concrete graph compiled in `main.py`: `START` flows into
+`draft`, then `execute_tools`, then `revise`. After each revision, `event_loop`
+either routes back to `execute_tools` for another search/revision round or ends
+the run.
 
 ## What This Project Demonstrates
 
@@ -23,8 +47,15 @@ The diagrams below are Mermaid diagrams, which GitHub renders as images.
 | `schemas.py` | Defines the Pydantic schemas the model must return. |
 | `tool_executor.py` | Converts generated search queries into Tavily search calls. |
 | `pyproject.toml` | Project metadata and Python dependencies. |
+| `reflexionactor.png` | Conceptual diagram of the responder/tool/revisor loop. |
+| `graphworkflow.png` | Rendered diagram of the compiled LangGraph node flow. |
 
-## End-to-End Flow
+## Mermaid Reference Diagrams
+
+The following Mermaid diagrams mirror the same workflow in text form, which makes
+them easy to edit as the graph changes.
+
+### End-to-End Flow
 
 ```mermaid
 flowchart TD
@@ -36,13 +67,13 @@ flowchart TD
     tools --> tavily["TavilySearch batch"]
     tavily --> revise["revise node"]
     revise --> revisor["chains.revisor"]
-    revisor --> revisedTool["RevisedAnswer tool call<br/>answer + reflection + search_queries + references"]
+    revisor --> revisedTool["ReviseAnswer tool call<br/>answer + reflection + search_queries + references"]
     revisedTool --> decision{"tool rounds < MAX_ITERATIONS?"}
     decision -- yes --> tools
     decision -- no --> final["print final answer"]
 ```
 
-## LangGraph Node Diagram
+### LangGraph Node Diagram
 
 ```mermaid
 flowchart TD
@@ -54,7 +85,7 @@ flowchart TD
     loop --> finish(["END"])
 ```
 
-## Runtime Sequence
+### Runtime Sequence
 
 ```mermaid
 sequenceDiagram
@@ -73,7 +104,7 @@ sequenceDiagram
     Tavily-->>Tools: Search results
     Tools-->>Graph: ToolMessage
     Graph->>Revisor: Send conversation + tool results
-    Revisor-->>Graph: RevisedAnswer tool call
+    Revisor-->>Graph: ReviseAnswer tool call
     Graph->>Graph: Repeat until MAX_ITERATIONS
     Graph-->>Dev: Final answer from tool_call args
 ```
@@ -88,9 +119,9 @@ sequenceDiagram
    - `search_queries`
 4. `execute_tools` in `tool_executor.py` receives that tool call and runs every generated search query through Tavily.
 5. The `revise` node calls `revisor` from `chains.py`.
-6. `revisor` is forced to return a `RevisedAnswer` tool call, which adds `references`.
+6. `revisor` is forced to return a `ReviseAnswer` tool call, which adds `references`.
 7. `event_loop` counts `ToolMessage` objects to decide whether to run another search/revision round.
-8. `print_final_answer` reads the final answer from:
+8. `extract_final_answer` reads the final answer from:
 
 ```python
 last_message.tool_calls[0]["args"]["answer"]
@@ -126,7 +157,7 @@ When run directly, `main.py` prints:
 ## Developer Notes
 
 - `MAX_ITERATIONS` in `main.py` controls the number of Tavily search rounds.
-- The tool names in `tool_executor.py` intentionally match `AnswerQuestion` and `RevisedAnswer`; this is how `ToolNode` routes model tool calls to `run_queries`.
+- The tool names in `tool_executor.py` intentionally match `AnswerQuestion` and `ReviseAnswer`; this is how `ToolNode` routes model tool calls to `run_queries`.
 - `main.py` only runs the sample question inside `if __name__ == "__main__"`, so other files can safely import `graph` or `run_agent`.
 - `chains.py` contains a small smoke-test block that can be run directly to inspect the first structured response without the full graph.
 
