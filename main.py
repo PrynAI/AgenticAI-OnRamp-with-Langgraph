@@ -1,69 +1,60 @@
-from typing import TypedDict, Annotated
+from chains import generator_chain, reflector_chain
+from langchain_core.messages import HumanMessage
+from langgraph.graph import END, MessagesState, StateGraph
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from langchain_core.messages import BaseMessage, HumanMessage
-from langgraph.graph import END, StateGraph
-from langgraph.graph.message import add_messages
-from chains import generate_chain, reflect_chain
-
-
-class MessageGraph(TypedDict):
-    # add_messages appends each node response to the existing conversation state.
-    messages: Annotated[list[BaseMessage], add_messages]
-
-
 REFLECT = "reflect"
 GENERATE = "generate"
+MAX_MESSAGES = 6
 
 
-def generation_node(state: MessageGraph):
-    # The generator sees the full message history, including previous critiques.
-    return {"messages": [generate_chain.invoke({"messages": state["messages"]})]}
+# Generate the next LinkedIn post draft from the current message history.
+def generation_node(state: MessagesState):
+    response = generator_chain.invoke({"messages": state["messages"]})
+    return {"messages": [response]}
 
 
-def reflection_node(state: MessageGraph):
-    res = reflect_chain.invoke({"messages": state["messages"]})
-    # Treat critique as human feedback so the generator revises against it next.
-    return {"messages": [HumanMessage(content=res.content)]}
+# Convert the reflector's critique into a HumanMessage so the generator treats
+# it as feedback on the next pass through the loop.
+def reflection_node(state: MessagesState):
+    response = reflector_chain.invoke({"messages": state["messages"]})
+    return {"messages": [HumanMessage(content=response.content)]}
 
 
-builder = StateGraph(state_schema=MessageGraph)
-
+# MessagesState stores the running conversation under state["messages"] and
+# appends message updates returned by each node.
+builder = StateGraph(MessagesState)
 builder.add_node(GENERATE, generation_node)
 builder.add_node(REFLECT, reflection_node)
 builder.set_entry_point(GENERATE)
 
 
-def should_continue(state: MessageGraph):
-    # Stop after several generate/reflect cycles to avoid an unbounded loop.
-    if len(state["messages"]) > 6:
+def should_continue(state: MessagesState):
+    # Stop once the reflection loop has enough generated drafts and critiques.
+    if len(state["messages"]) > MAX_MESSAGES:
         return END
-
     return REFLECT
 
 
-# After each generation, either end or reflect. Reflection always loops back.
-builder.add_conditional_edges(GENERATE, should_continue)
+builder.add_conditional_edges(
+    GENERATE, should_continue, path_map={END: END, REFLECT: REFLECT}
+)
 builder.add_edge(REFLECT, GENERATE)
-
 graph = builder.compile()
-
-# Print visualizations so the workflow shape is easy to inspect while learning.
-print(graph.get_graph().draw_mermaid())
-graph.get_graph().print_ascii()
 
 
 if __name__ == "__main__":
+    print(graph.get_graph().draw_mermaid())
+    graph.get_graph().print_ascii()
     print("Hello Langgraph")
-    # Replace this message to test the reflection loop with different copy.
-    inputs = {"messages": [HumanMessage(content="""Make this Linkedin better:"
-                                    @LangChainAI
+    inputs = HumanMessage(content="""Make this LinkedIn post better:"
+                        #LangChainAI
             — newly Tool Calling feature is seriously underrated.
 
             After a long wait, it's  here- making the implementation of agents across different models with function calling - super easy.
 
-            Made a video covering their newest blog post""")]}
-    response = graph.invoke(inputs)
+            Made a video covering their newest blog post""")
+    response = graph.invoke({"messages": [inputs]})
     print(response["messages"][-1].content)

@@ -27,8 +27,8 @@ llm_reflector = ChatOpenAI(model="gpt-5.4-mini", temperature=0, reasoning_effort
 generator_prompt_template = ChatPromptTemplate(
     [
         SystemMessage(
-            content="You are a twitter techie influencer assistant tasked with writing excellent linkedin  posts."
-            " Generate the best linkedin post possible for the user's request."
+            content="You are a LinkedIn tech influencer assistant tasked with writing excellent LinkedIn posts."
+            " Generate the best LinkedIn post possible for the user's request."
             " If the user provides critique, respond with a revised version of your previous attempts."
         ),
         MessagesPlaceholder(variable_name="messages"),
@@ -41,8 +41,9 @@ generator_prompt_template = ChatPromptTemplate(
 reflector_prompt_template = ChatPromptTemplate(
     [
         SystemMessage(
-            content="You are a viral linkdedin influencer grading a linkedin posts. Generate critique and recommendations for the user's linkdedin post."
-            "Always provide detailed recommendations, including requests for length, virality, style, etc"
+            content="You are a viral LinkedIn influencer grading LinkedIn posts."
+            " Generate critique and recommendations for the user's LinkedIn post."
+            " Always provide detailed recommendations, including requests for length, virality, style, etc."
         ),
         MessagesPlaceholder(variable_name="messages"),
     ]
