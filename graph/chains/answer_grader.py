@@ -2,7 +2,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 from langchain_core.runnables import RunnableSequence
 from langchain_openai import ChatOpenAI
-from langchain.messages import HumanMessage, SystemMessage
 
 
 class GradeAnswer(BaseModel):
@@ -21,10 +20,8 @@ For short term-style questions such as "agent memory?", a definition or explanat
 Return false only if the answer is off-topic or does not answer what was asked."""
 answer_prompt = ChatPromptTemplate.from_messages(
     [
-        SystemMessage(content=system),
-        HumanMessage(
-            content="User question: \n\n {question} \n\n LLM generation: {generation}"
-        ),
+        ("system", system),
+        ("human", "User question: \n\n {question} \n\n LLM generation: {generation}"),
     ]
 )
 

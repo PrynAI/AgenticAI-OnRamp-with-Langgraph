@@ -14,7 +14,7 @@ Adaptive RAG, Corrective RAG, or Self-RAG. It is not a free-form autonomous
 agent. The "agentic" behavior comes from LLM-powered routing, grading,
 rewriting, and retry decisions inside a deterministic LangGraph workflow.
 
-![Compiled LangGraph workflow](AdvancedAgentic.png)
+![Compiled LangGraph workflow](images/AdvancedAgenticRAG.png)
 
 ## What This Project Does
 
@@ -32,14 +32,17 @@ Given a question, the graph can:
 8. Grade whether the grounded answer actually addresses the user question.
 9. Retry generation or web search with bounded limits.
 
-The default indexed knowledge base is built from three Lilian Weng articles:
+The default indexed knowledge base is built from four web articles:
 
 - Agents: `https://lilianweng.github.io/posts/2023-06-23-agent/`
 - Prompt engineering: `https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/`
 - Adversarial attacks on LLMs: `https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/`
+- Long-term memory with LangGraph Store: `https://prynai.github.io/2025/10/16/Long-Term-Memory-LangGraph-Store.html`
 
-The router is intentionally aligned to those topics. Questions about agents,
-prompt engineering, or adversarial attacks should use the vector store.
+The router is intentionally aligned to the indexed topics. Its prompt currently
+names agents, prompt engineering, and adversarial attacks; the PrynAI article
+extends the agent-memory portion of the corpus. Questions about agents, prompt
+engineering, adversarial attacks, or agent memory should use the vector store.
 Questions outside those topics should use web search.
 
 ## Why This Architecture Exists
@@ -68,6 +71,11 @@ that simple flow:
 The purpose is to make the answer path adaptive while keeping the execution
 easy to inspect, test, and extend. LangGraph is used because this design is a
 state machine with conditional edges, not a single linear chain.
+
+The companion architecture sketch shows the same control flow at a higher
+level:
+
+![Advanced RAG architecture sketch](images/Architecture.png)
 
 ## Architecture At A Glance
 
@@ -108,11 +116,14 @@ query.
 ```text
 .
 |-- main.py                              # Minimal entry point that invokes the graph
-|-- ingestion.py                         # Loads web pages, chunks them, embeds them, writes to Weaviate
-|-- retriever.py                         # Exposes a Weaviate retriever with k=3
+|-- rag/
+|   |-- ingestion.py                     # Loads web pages, chunks them, embeds them, writes to Weaviate
+|   `-- retriever.py                     # Exposes a Weaviate retriever with k=3
 |-- pyproject.toml                       # Python project metadata and dependencies
 |-- uv.lock                              # Locked dependency resolution for reproducible installs
-|-- AdvancedAgentic.png                  # Generated graph image
+|-- images/
+|   |-- AdvancedAgenticRAG.png           # Generated compiled LangGraph image
+|   `-- Architecture.png                 # High-level architecture sketch
 `-- graph/
     |-- graph.py                         # LangGraph topology, routing, conditional edges, retry decisions
     |-- state.py                         # TypedDict state schema passed between nodes
@@ -129,7 +140,7 @@ query.
         |-- hallucination_grader.py      # Structured groundedness grader
         |-- answer_grader.py             # Structured answer usefulness grader
         |-- search_query_rewriter.py     # Rewrites failed questions for web search
-        `-- tests/testchains.py          # Integration-style tests for chains
+        `-- tests/test_chains.py         # Integration-style tests for chains
 ```
 
 ## Runtime Services
@@ -138,8 +149,8 @@ This project depends on external services at runtime.
 
 | Service | Used For | Code Location |
 | --- | --- | --- |
-| OpenAI | Chat model calls and embeddings | `graph/chains/*.py`, `ingestion.py` |
-| Weaviate Cloud | Vector database for indexed documents | `ingestion.py`, `retriever.py` |
+| OpenAI | Chat model calls and embeddings | `graph/chains/*.py`, `rag/ingestion.py` |
+| Weaviate Cloud | Vector database for indexed documents | `rag/ingestion.py`, `rag/retriever.py` |
 | Tavily | Web search fallback | `graph/nodes/web_search.py` |
 | LangSmith Hub | Pulls the public `rlm/rag-prompt` prompt | `graph/chains/generation.py` |
 | LangGraph | Stateful graph orchestration | `graph/graph.py` |
@@ -216,28 +227,31 @@ The dependency chain is:
 main.py
   -> graph.graph
     -> graph.nodes.retrieve
-      -> retriever.py
-        -> ingestion.py
+      -> rag/retriever.py
+        -> rag/ingestion.py
 ```
 
-Because `retriever.py` imports `vectorstore` from `ingestion.py`, importing the
+Because `rag/retriever.py` imports `vectorstore` from `rag/ingestion.py`, importing the
 graph can load the source URLs, split documents, create embeddings, connect to
 Weaviate, and write documents to the configured collection.
+
+`graph/graph.py` also writes the compiled LangGraph visualization to
+`images/AdvancedAgenticRAG.png` when the graph is imported.
 
 That is acceptable for a small learning project, but in a production system
 indexing should be separated from query serving. A production version should
 usually move ingestion behind an explicit command such as:
 
 ```bash
-uv run python ingestion.py
+uv run python -m rag.ingestion
 ```
 
-and make `retriever.py` connect to an existing collection without re-ingesting
+and make `rag/retriever.py` connect to an existing collection without re-ingesting
 documents.
 
 ## Data Ingestion Logic
 
-`ingestion.py` performs the indexing workflow:
+`rag/ingestion.py` performs the indexing workflow:
 
 1. Load `.env`.
 2. Read `WEAVIATE_COLLECTION_NAME`, defaulting to `Langgraphwebcollection`.
@@ -245,7 +259,7 @@ documents.
 4. Load each URL with `WebBaseLoader`.
 5. Flatten the loaded documents into one list.
 6. Split documents with `RecursiveCharacterTextSplitter.from_tiktoken_encoder`.
-7. Use `chunk_size=250` and `chunk_overlap=0`.
+7. Use `chunk_size=250` and `chunk_overlap=20`.
 8. Create OpenAI embeddings with `OpenAIEmbeddings()`.
 9. Connect to Weaviate Cloud with `WEAVIATE_URL` and `WEAVIATE_API_KEY`.
 10. Store document chunks in Weaviate through `WeaviateVectorStore.from_documents`.
@@ -254,10 +268,10 @@ The vector text field is configured as `text`.
 
 ## Retriever Logic
 
-`retriever.py` exposes one retriever:
+`rag/retriever.py` exposes one retriever:
 
 ```python
-from ingestion import vectorstore
+from rag.ingestion import vectorstore
 
 retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 ```
@@ -267,7 +281,7 @@ configured Weaviate collection.
 
 ## Graph State
 
-The shared state is defined in `graph/state.py`.
+The shared state is defined as `AgenticRagState` in `graph/state.py`.
 
 | Field | Required | Meaning |
 | --- | --- | --- |
@@ -583,7 +597,7 @@ the graph can rewrite the search query and call Tavily again until
 
 ## Tests
 
-The tests are in `graph/chains/tests/testchains.py`.
+The tests are in `graph/chains/tests/test_chains.py`.
 
 Run them with:
 
@@ -606,7 +620,7 @@ but they are not isolated unit tests.
 
 ### Add Or Change Indexed Documents
 
-Update the `urls` list in `ingestion.py`.
+Update the `SOURCE_URLS` list in `rag/ingestion.py`.
 
 Then run the application or ingestion script with valid Weaviate credentials.
 In the current implementation, importing the graph can trigger ingestion.
@@ -632,9 +646,14 @@ The router should describe the actual corpus. If it is too broad, unrelated
 questions may be routed to retrieval. If it is too narrow, relevant questions
 may go to web search unnecessarily.
 
+The current corpus also includes the PrynAI long-term memory article. If you
+want LangGraph Store or long-term memory questions to route explicitly to the
+vector store, add those topics to the router prompt instead of relying only on
+the broader agents wording.
+
 ### Tune Retrieval
 
-Edit `retriever.py`:
+Edit `rag/retriever.py`:
 
 ```python
 retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
@@ -684,7 +703,7 @@ To add another capability:
 3. Add a node name constant in `graph/consts.py`.
 4. Register the node with `workflow.add_node(...)` in `graph/graph.py`.
 5. Add normal or conditional edges to connect it to the graph.
-6. Add any required state fields to `GraphState` in `graph/state.py`.
+6. Add any required state fields to `AgenticRagState` in `graph/state.py`.
 
 Good candidate nodes:
 
@@ -723,7 +742,7 @@ Before using this design beyond a learning project, consider these changes:
 - Web search results are joined into one document, so individual source metadata
   is not preserved in the final state.
 - Final answers do not currently include citations.
-- The Weaviate client close call is commented out in `ingestion.py`.
+- The Weaviate client close call is commented out in `rag/ingestion.py`.
 
 ## Why This Is Useful
 
@@ -740,3 +759,5 @@ agentic RAG:
 The main design lesson is that better RAG is not only about better generation.
 It is also about deciding when to retrieve, when to search, what context to
 trust, whether the answer is grounded, and when to stop retrying.
+
+LangSmith tracing link: https://smith.langchain.com/public/dcf68017-71f6-4d0e-a687-f1091e32c4ab/r

@@ -1,23 +1,25 @@
-from typing import TypedDict, List, NotRequired
+from typing import NotRequired, TypedDict
+
 from langchain_core.documents import Document
 
 
-class GraphState(TypedDict):
-    """State that contains attriutes with defined types that flows through out state of the graph
+class AgenticRagState(TypedDict):
+    """Shared state passed between LangGraph nodes.
 
     Attributes:
-        question:str:question:input prompt to user
-        generation:str:LLM generation : response to the user
-        web_search:bool:dection to call websearch or not
-        document:list of document that generate from retrieval & websearch
-
-
+        question: Original user question.
+        generation: LLM answer generated from the current documents.
+        web_search: Whether document grading requested web search repair.
+        documents: Documents accumulated from retrieval and web search.
+        generation_attempts: Number of answer generation attempts.
+        web_search_attempts: Number of web search attempts.
+        web_search_query: Last query sent to Tavily.
     """
 
     question: str
     generation: NotRequired[str]
     web_search: NotRequired[bool]
-    documents: NotRequired[List[Document]]
+    documents: NotRequired[list[Document]]
     generation_attempts: NotRequired[int]
     web_search_attempts: NotRequired[int]
     web_search_query: NotRequired[str]

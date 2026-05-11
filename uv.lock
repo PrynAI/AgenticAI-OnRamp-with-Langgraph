@@ -29,7 +29,6 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "ruff" },
     { name = "tavily-python" },
-    { name = "weaviate" },
 ]
 
 [package.metadata]
@@ -52,7 +51,6 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "ruff", specifier = ">=0.15.12" },
     { name = "tavily-python", specifier = ">=0.7.24" },
-    { name = "weaviate", specifier = ">=0.1.2" },
 ]
 
 [[package]]
@@ -3169,15 +3167,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/2c/ee/afaf0f85a9a18fe47a67f1e4422ed6cf1fe642f0ae0a2f81166231303c52/wcwidth-0.7.0.tar.gz", hash = "sha256:90e3a7ea092341c44b99562e75d09e4d5160fe7a3974c6fb842a101a95e7eed0", size = 182132, upload-time = "2026-05-02T16:04:12.653Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/52/e465037f5375f43533d1a80b6923955201596a99142ed524d77b571a1418/wcwidth-0.7.0-py3-none-any.whl", hash = "sha256:5d69154c429a82910e241c738cd0e2976fac8a2dd47a1a805f4afed1c0f136f2", size = 110825, upload-time = "2026-05-02T16:04:11.033Z" },
-]
-
-[[package]]
-name = "weaviate"
-version = "0.1.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/61/6b/5d363c593d223f1772944f29b128ec3998c5485d3f36999936e1b3cc8ffa/weaviate-0.1.2.tar.gz", hash = "sha256:a381b8bb0eb236bd10256def8612953ed9024e6738b8a259e7ec11e626ae0665", size = 4110, upload-time = "2024-10-24T14:17:41.766Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/35/745561b577a0bf0ead3f53d24c01390e8bc9547b385f26cfcaccbe474e7e/weaviate-0.1.2-py3-none-any.whl", hash = "sha256:40f1c1cf0b769036315d2b6026c8cd823a3a6e951c90d4e70a001a770ba8a444", size = 2568, upload-time = "2024-10-24T14:17:40.314Z" },
 ]
 
 [[package]]

@@ -1,15 +1,15 @@
-from dotenv import load_dotenv
+"""Live integration tests for the chain layer."""
 
+from dotenv import load_dotenv
 from pprint import pprint
 
-load_dotenv()
-
-
-from graph.chains.retrieval_grader import GradeDocuments, retrieval_grader
 from graph.chains.generation import generation_chain
-from retriever import retriever
-from graph.chains.hallucination_grader import hallucination_grader, GradeHallucinations
+from graph.chains.hallucination_grader import GradeHallucinations, hallucination_grader
+from graph.chains.retrieval_grader import GradeDocuments, retrieval_grader
 from graph.chains.router import question_router, RouteQuery
+from rag.retriever import retriever
+
+load_dotenv()
 
 
 def test_retrival_grader_answer_yes() -> None:

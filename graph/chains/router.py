@@ -1,8 +1,8 @@
 from typing import Literal
+
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
-from langchain.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel, Field
 
 
 class RouteQuery(BaseModel):
@@ -25,7 +25,7 @@ Use the vectorstore for questions on these topics. For all else, use web-search
 """
 
 route_prompt = ChatPromptTemplate.from_messages(
-    [SystemMessage(content=system), HumanMessage(content="{question}")]
+    [("system", system), ("human", "{question}")]
 )
 
 question_router = route_prompt | structured_llm_router

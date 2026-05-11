@@ -1,9 +1,10 @@
-from typing import Any, Dict
-from retriever import retriever
-from graph.state import GraphState
+from typing import Any
+
+from rag.retriever import retriever
+from graph.state import AgenticRagState
 
 
-def retrieve(state: GraphState) -> Dict[str, Any]:
+def retrieve(state: AgenticRagState) -> dict[str, Any]:
     print("-----Retrieving-------")
     question = state["question"]
     documents = retriever.invoke(question)

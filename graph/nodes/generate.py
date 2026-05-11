@@ -1,9 +1,10 @@
-from typing import Any, Dict
+from typing import Any
+
 from graph.chains.generation import generation_chain
-from graph.state import GraphState
+from graph.state import AgenticRagState
 
 
-def generate(state: GraphState) -> Dict[str, Any]:
+def generate(state: AgenticRagState) -> dict[str, Any]:
     print("-----GENERATE......")
     question = state["question"]
     documents = state.get("documents", [])

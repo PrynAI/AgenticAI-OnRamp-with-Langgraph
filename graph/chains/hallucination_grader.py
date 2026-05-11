@@ -10,7 +10,7 @@ class GradeHallucinations(BaseModel):
     """Binary score for hallucination present in generation answer."""
 
     binary_score: bool = Field(
-        description="Answer is grounded in the facts, 'yes' or 'no'"
+        description="True when the answer is grounded in the supplied facts."
     )
 
 
