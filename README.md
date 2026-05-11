@@ -37,17 +37,24 @@ app.get_graph().draw_mermaid_png(output_file_path="flow.png")
 
 ### `main.py`
 
-`main.py` wires the graph together:
+`main.py` runs the sample invocation:
+
+- Imports the compiled graph application from `graph.py`.
+- Sends the sample temperature-and-triple prompt as a `HumanMessage`.
+- Prints the final assistant response from the message state.
+
+### `graph.py`
+
+`graph.py` wires the graph together:
 
 - Defines graph node names: `agent_reason` and `act`.
-- Implements `should_continue`, which checks the last message for tool calls.
+- Implements `should_continue`, which checks the latest AI message for tool calls.
 - Adds the reasoning node and tool node to the graph.
 - Sets `agent_reason` as the entry point.
 - Adds a conditional edge from `agent_reason` to either `END` or `act`.
 - Adds a loop edge from `act` back to `agent_reason`.
 - Compiles the graph into `app`.
-- Generates `flow.png` from the graph.
-- Runs a sample invocation when executed directly.
+- Regenerates `flow.png` from the compiled graph.
 
 ### `nodes.py`
 
@@ -57,9 +64,9 @@ app.get_graph().draw_mermaid_png(output_file_path="flow.png")
 - Implements `run_agent_reasoning`, which calls the tool-bound LLM with the system message and current message history.
 - Creates `tool_node` using LangGraph's prebuilt `ToolNode`.
 
-### `react.py`
+### `llm.py`
 
-`react.py` defines the model and tools:
+`llm.py` defines the model and tools:
 
 - Loads environment variables with `python-dotenv`.
 - Defines the custom `triple(num: float) -> float` tool.
@@ -73,10 +80,11 @@ app.get_graph().draw_mermaid_png(output_file_path="flow.png")
 .
 ├── README.md
 ├── flow.png
+├── graph.py
+├── llm.py
 ├── main.py
 ├── nodes.py
 ├── pyproject.toml
-├── react.py
 └── uv.lock
 ```
 
@@ -115,8 +123,8 @@ uv run python main.py
 The script will:
 
 1. Load environment variables.
-2. Compile the LangGraph workflow.
-3. Regenerate `flow.png`.
+2. Import `graph.py`, which compiles the LangGraph workflow.
+3. Regenerate `flow.png` from the compiled workflow.
 4. Invoke the agent with the sample temperature-and-triple request.
 5. Print the final assistant response.
 
@@ -150,3 +158,7 @@ The agent should:
 - The loop continues only while the latest model response includes tool calls.
 - `ToolNode` handles tool dispatch, execution, and message conversion, which keeps the graph code small.
 - `flow.png` is checked into the repository so the graph structure is visible directly from the README.
+
+## LangSmith Trace
+
+https://smith.langchain.com/public/77962233-ba2c-4185-9d86-2219f113cd23/r
