@@ -1,4 +1,4 @@
-# Agentic AI On-Ramp with LangGraph
+# DeepAgents
 
 A small Python project for experimenting with LangChain agents and
 DeepAgents. The current example wires a mock weather tool into an agent,
