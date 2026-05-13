@@ -1,6 +1,6 @@
-# Agentic AI On-Ramp With LangGraph
+# ReAct-Agent-Function-Calling
 
-This repository contains a small ReAct-style agent built with LangGraph, LangChain, OpenAI tool calling, and Tavily search. The branch implements an agent that can reason over a user request, decide whether tool use is required, execute tools, and loop back through the graph until it has enough information to return a final answer.
+This branch contains a small ReAct-style agent built with LangGraph, LangChain, OpenAI tool calling, and Tavily search. The branch implements an agent that can reason over a user request, decide whether tool use is required, execute tools, and loop back through the graph until it has enough information to return a final answer.
 
 The sample prompt in `main.py` asks for the live temperature in Guntur and then asks the agent to triple it. That exercise demonstrates both parts of the implementation: retrieving current information with Tavily and applying a custom Python tool through LangGraph's tool execution node.
 
