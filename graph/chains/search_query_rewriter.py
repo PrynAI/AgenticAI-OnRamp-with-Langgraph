@@ -7,7 +7,7 @@ load_dotenv()
 
 llm = ChatOpenAI(model="gpt-5-nano", temperature=0)
 
-system = """You rewrite failed RAG questions into concise web search queries.
+system = """You are a search query rewriter who rewrite failed RAG questions into concise web search queries.
 Use the original user question and the previous answer to identify what information is missing.
 Return only the search query, with no explanation."""
 

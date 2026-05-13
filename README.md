@@ -116,6 +116,7 @@ query.
 ```text
 .
 |-- main.py                              # Minimal entry point that invokes the graph
+|-- langgraph.json                       # LangGraph CLI config for local Studio testing
 |-- rag/
 |   |-- ingestion.py                     # Loads web pages, chunks them, embeds them, writes to Weaviate
 |   `-- retriever.py                     # Exposes a Weaviate retriever with k=3
@@ -123,7 +124,8 @@ query.
 |-- uv.lock                              # Locked dependency resolution for reproducible installs
 |-- images/
 |   |-- AdvancedAgenticRAG.png           # Generated compiled LangGraph image
-|   `-- Architecture.png                 # High-level architecture sketch
+|   |-- Architecture.png                 # High-level architecture sketch
+|   `-- langgraphstudioinlangsmith.png   # LangSmith Studio view of the local graph
 `-- graph/
     |-- graph.py                         # LangGraph topology, routing, conditional edges, retry decisions
     |-- state.py                         # TypedDict state schema passed between nodes
@@ -154,6 +156,7 @@ This project depends on external services at runtime.
 | Tavily | Web search fallback | `graph/nodes/web_search.py` |
 | LangSmith Hub | Pulls the public `rlm/rag-prompt` prompt | `graph/chains/generation.py` |
 | LangGraph | Stateful graph orchestration | `graph/graph.py` |
+| LangGraph CLI | Local Agent Server used by LangSmith Studio | `langgraph.json` |
 
 The code currently uses `ChatOpenAI(model="gpt-5-nano", temperature=0)` for
 router, grader, rewriter, and generation chains. `OpenAIEmbeddings()` is used
@@ -179,12 +182,25 @@ LANGSMITH_TRACING=true
 `WEAVIATE_COLLECTION_NAME` is optional. If it is not set, the code uses
 `Langgraphwebcollection`.
 
+`LANGSMITH_API_KEY` is required when connecting the local Agent Server to
+LangSmith Studio. Keep `LANGSMITH_TRACING=true` when you want traces recorded
+in LangSmith, or set it to `false` when you want to use the local server without
+sending trace data to LangSmith.
+
 ## Installation
 
 This project is configured with `uv` and requires Python `>=3.13`.
 
 ```bash
 uv sync
+```
+
+The project already includes `langgraph-cli[inmem]` in `pyproject.toml`, so
+`uv sync` installs the local CLI needed for LangSmith Studio testing. If you are
+adding Studio support to an older checkout, the equivalent dependency command is:
+
+```bash
+uv add "langgraph-cli[inmem]"
 ```
 
 If you are not using `uv`, install the dependencies from `pyproject.toml` with
@@ -216,6 +232,74 @@ Expected high-level behavior:
   agents.
 - `how to make pizza?` should route to web search because it is outside the
   indexed corpus.
+
+## Testing The Graph In LangSmith Studio
+
+This repository is configured for local LangSmith Studio testing through the
+LangGraph CLI. The setup is defined in `langgraph.json`:
+
+```json
+{
+  "graphs": {
+    "agent": "./graph/graph.py:app"
+  },
+  "env": ".env",
+  "dependencies": ["."]
+}
+```
+
+This points Studio at the compiled `app` graph exported from
+`graph/graph.py`, loads environment variables from `.env`, and installs the
+current repository as the graph dependency.
+
+### Start The Local Agent Server
+
+From the project root, run:
+
+```bash
+uv run langgraph dev
+```
+
+If your virtual environment is already active, `langgraph dev` is equivalent.
+The CLI starts a local Agent Server on:
+
+```text
+http://127.0.0.1:2024
+```
+
+### Open Studio
+
+With the dev server running, open LangSmith Studio at:
+
+```text
+https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
+```
+
+Studio should load the `agent` graph from `langgraph.json` and render the
+workflow visually:
+
+![Agentic RAG workflow loaded in LangSmith Studio](images/langgraphstudioinlangsmith.png)
+
+### What Developers Can Test There
+
+Use Studio to:
+
+1. Submit questions such as `agent memory?` or `how to make pizza?`.
+2. Watch the graph route between retrieval and web search.
+3. Inspect which nodes executed, the evolving graph state, and intermediate
+   values.
+4. Re-run the graph after prompt, routing, or node changes during local
+   development.
+
+### Studio-Specific Notes For This Repository
+
+- `LANGSMITH_API_KEY` should be present in `.env` before starting the dev
+  server.
+- Starting `langgraph dev` imports the graph, so this project can still trigger
+  the same import-time ingestion behavior described later in this README.
+- Because the graph uses OpenAI, Tavily, Weaviate, and a LangSmith Hub prompt,
+  the same service credentials used for normal runs are also needed for a full
+  Studio test session.
 
 ## Important Runtime Behavior
 

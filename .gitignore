@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+.vscode
+.uv-cache
+.langgraph_api
+.agents

@@ -14,7 +14,7 @@ llm = ChatOpenAI(model="gpt-5-nano", temperature=0)
 structured_llm_grader = llm.with_structured_output(GradeAnswer)
 
 
-system = """You are a grader assessing whether an answer addresses the user's question.
+system = """You are an answer grader assessing whether an answer addresses the user's question.
 Return true if the answer directly responds to the question.
 For short term-style questions such as "agent memory?", a definition or explanation of the term counts as addressing the question.
 Return false only if the answer is off-topic or does not answer what was asked."""
