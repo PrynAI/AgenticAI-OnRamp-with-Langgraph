@@ -2,7 +2,10 @@ from typing import TypedDict
 
 
 class PersistantMemoryState(TypedDict):
-    """state graph values that graph carries between nodes"""
+    """State values that the persisted LangGraph workflow carries between nodes."""
 
+    # Original user or system input that starts the workflow.
     input: str
-    user_Feedback: str
+
+    # Human input is added later while the graph is paused at the interrupt.
+    user_feedback: str
