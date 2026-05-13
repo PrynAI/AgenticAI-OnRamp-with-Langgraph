@@ -1,4 +1,4 @@
-# AgenticAI OnRamp with LangGraph - MCP Branch
+# MCP
 
 This branch demonstrates how to expose Python functions as Model Context Protocol
 tools and consume those tools from a LangChain agent. It includes two MCP server
